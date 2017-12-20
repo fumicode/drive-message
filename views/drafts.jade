@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  h1 スプレッドシート名: CodePBL名簿
+
+  h2 カラム
+  table
+    tr
+      td タイムスタンプ
+      td 名前
+      td メールアドレス
+      td 学年
+    tr
+      td timestamp
+      td name
+      td email
+      td grade
+
+  h2 テンプレート
+
+  form(method="post" action="#{path.join(url,'../' )}")
+    textarea(name="template_text" rows="20" cols="50")= template.text
+    input(type="submit" value="下書きを再生成")
+    
+
+  h2 作成された下書き
+  table
+    tr
+      th 送信先メールアドレス
+      th 本文
+    tr
+      td email
+      td body
+    each draft in drafts
+      tr
+        td= draft.email
+        td
+          textarea #{draft.body}
+
+
+

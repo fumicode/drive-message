@@ -1,5 +1,12 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  h2 スプレッドシートを登録
+  p スプレッドシートのURLを入力してね
+
+  form(method="post" action="/templates/")
+    input(type="text" name="ss_url")
+    input(type="submit" value="スプレッドシートのデータを読み込み")
+
+
+

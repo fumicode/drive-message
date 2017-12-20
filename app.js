@@ -22,6 +22,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+app.use(function(req,res,next){
+  res.locals.path = path;
+  res.locals.url = req.url;
+  res.locals.baseUrl = req.baseUrl;
+  next();
+});
+
 app.use('/', index);
 app.use('/users', users);
 
