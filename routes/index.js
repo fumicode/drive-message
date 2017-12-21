@@ -22,10 +22,10 @@ const templates = [
     ],
     data:[
       [ 234234, "石井将文", "a@a.a", "M2" ],
-      [ 234234, "石井将文", "a@a.a", "M2" ],
-      [ 234234, "石井将文", "a@a.a", "M2" ],
-      [ 234234, "石井将文", "a@a.a", "M2" ],
-      [ 234234, "石井将文", "a@a.a", "M2" ],
+      [ 234234, "石井将文", "b@a.a", "M2" ],
+      [ 234234, "石井将文", "c@a.a", "M2" ],
+      [ 234234, "石井将文", "d@a.a", "M2" ],
+      [ 234234, "石井将文", "ea@a.a", "M2" ],
     ] //取得したデータをいれる
   }
 
@@ -123,20 +123,29 @@ router.get('/templates/:template_id/drafts', function(req, res, next) {
   console.log("template in drafts");
   console.log(template);
 
-  const drafts = [
-    {
-      email:"aaa@gmail.com", 
-      body: template.text 
-    },
-    {
-      email:"aaa@gmail.com", 
-      body: template.text
-    },
-    {
-      email:"aaa@gmail.com", 
-      body: template.text
-    },
-  ];
+
+  const columns = template.header_columns;
+  //template.text と、dataをまーじする。
+  const drafts =  template.data.map((row)=>{
+    let body = template.text;
+
+    columns.forEach((column, index)=>{
+      const cell = row[index];
+      body = body.replace("#{"+column.slug+"}", cell);
+    });
+
+
+    //emailという特別なカラムをとりだす
+    var email_index = columns.findIndex((column)=>column.slug == "email");
+
+    var email = row[email_index];
+
+
+    return {
+      email,
+      body
+    };
+  });
 
   res.render("drafts", {
     template,
