@@ -1,23 +1,15 @@
 extends layout
 
 block content
-  h1 スプレッドシート名: CodePBL名簿
+  h1 スプレッドシート名: #{template.title}
+  input(type="text" value="#{template.ss_url}")
 
   h2 カラム
-
-  table
-    tr
-      td タイムスタンプ
-      td 名前
-      td メールアドレス
-      td 学年
-    tr
-      td timestamp
-      td name
-      td email
-      td grade
-
-
+  ul.table-columns
+    each column in template.header_columns
+      li.table-columns__item
+        .table-columns__name= column.name
+        .table-columns__slug= column.slug
 
   h2 メールテンプレート
   form(method="post" action="#{url}")

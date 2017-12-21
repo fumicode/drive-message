@@ -6,3 +6,32 @@ body {
 a {
   color: #00B7FF;
 }
+
+
+.table-columns{
+  overflow:hidden;
+  
+  list-style:none;
+
+  padding:0;margin:0;
+}
+
+.table-columns__item{
+  float:left;
+
+  border-radius:5px;
+  background:#faa;
+
+  padding:5px;
+  margin:5px;
+}
+
+.table-columns__name{
+  font-weight:bold;
+
+}
+
+.table-columns__slug{
+
+}
+

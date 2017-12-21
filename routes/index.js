@@ -10,10 +10,25 @@ router.get('/', function(req, res, next) {
 
 const templates = [
   {
-    ss_url: "http://supureddoshi-tonourl",
-    text: "",
-    data: [[]],
+    ss_url: "http://xxxx",
+    title: "",
+    text: " mail_to: #{email} \n\n#{name}様 \n\nお世話になっております。 \n\nよろしくお願いいたします。 ", 
+
+    header_columns: [
+      {name:"タイムスタンプ", slug: "timestamp"},
+      {name:"名前",           slug: "name"},
+      {name:"メールアドレス", slug: "email"},
+      {name:"学年",           slug: "grade"},
+    ],
+    data:[
+      [ 234234, "石井将文", "a@a.a", "M2" ],
+      [ 234234, "石井将文", "a@a.a", "M2" ],
+      [ 234234, "石井将文", "a@a.a", "M2" ],
+      [ 234234, "石井将文", "a@a.a", "M2" ],
+      [ 234234, "石井将文", "a@a.a", "M2" ],
+    ] //取得したデータをいれる
   }
+
 ];
 
 
@@ -23,7 +38,41 @@ router.post('/templates/', function(req, res, next) {
   //ss_url からデータを取得
   //２行よんで、ヘッダーとして保存
 
-  res.redirect(path.join(req.baseUrl, ""+0));
+  const title = "CodePBLなんとか名簿";
+
+
+  const header_columns = [
+    {name:"タイムスタンプ", slug: "timestamp"},
+    {name:"名前",           slug: "name"},
+    {name:"メールアドレス", slug: "email"},
+    {name:"学年",           slug: "grade"},
+  ];
+
+  const data = [
+    [ 234234, "石井将文", "a@a.a", "M2" ],
+    [ 234234, "石井将文", "a@a.a", "M2" ],
+    [ 234234, "石井将文", "a@a.a", "M2" ],
+    [ 234234, "石井将文", "a@a.a", "M2" ],
+    [ 234234, "石井将文", "a@a.a", "M2" ],
+  ];
+
+
+  const text = " mail_to: #{email} \n\n#{name}様 \n\nお世話になっております。 \n\nよろしくお願いいたします。 ";
+  
+
+
+  //なにも問題無かったら、templateをつくる
+  const new_index = templates.length;
+
+  templates[new_index] = {
+    ss_url: ss_url || "http://xxxx",
+    title: title || "CodePBLなんとか名簿",
+    text,
+    header_columns: header_columns ,
+    data:data , //取得したデータをいれる
+  };
+
+  res.redirect(path.join(req.baseUrl, ""+new_index));
 });
 
 router.get('/templates/:template_id', function(req, res, next) {
