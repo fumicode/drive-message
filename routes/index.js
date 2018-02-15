@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const path = require("path");
+var auth = require("./auth.js")
+
+var ss_id;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -12,7 +15,7 @@ const templates = [
   {
     ss_url: "http://xxxx",
     title: "",
-    text: " mail_to: #{email} \n\n#{name}様 \n\nお世話になっております。 \n\nよろしくお願いいたします。 ", 
+    text: " mail_to: #{email} \n\n#{name}様 \n\nお世話になっております。 \n\nよろしくお願いいたします。 ",
 
     header_columns: [
       {name:"タイムスタンプ", slug: "timestamp"},
@@ -31,12 +34,13 @@ const templates = [
 
 ];
 
-
 router.post('/templates/', function(req, res, next) {
-  const ss_url = req.body.ss_url;
+  ss_url = req.body.ss_url;
+  ss_id = ss_url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[0].slice(16);
 
   //ss_url からデータを取得
   //２行よんで、ヘッダーとして保存
+  auth.startAuth(res, ss_id);
 
   const title = "CodePBLなんとか名簿";
 
@@ -58,7 +62,7 @@ router.post('/templates/', function(req, res, next) {
 
 
   const text = " mail_to: #{email} \n\n#{name}様 \n\nお世話になっております。 \n\nよろしくお願いいたします。 ";
-  
+
 
 
   //なにも問題無かったら、templateをつくる
@@ -72,7 +76,7 @@ router.post('/templates/', function(req, res, next) {
     data:data , //取得したデータをいれる
   };
 
-  res.redirect(path.join(req.baseUrl, ""+new_index));
+  // res.redirect(path.join(req.baseUrl, ""+new_index));
 });
 
 router.get('/templates/:template_id', function(req, res, next) {
@@ -103,7 +107,7 @@ router.post('/templates/:template_id', function(req, res, next) {
   console.log(template);
 
   template.text = template_text;
-  
+
 
   console.log("template");
   console.log(template);
@@ -125,15 +129,15 @@ router.get('/templates/:template_id/drafts', function(req, res, next) {
 
   const drafts = [
     {
-      email:"aaa@gmail.com", 
-      body: template.text 
-    },
-    {
-      email:"aaa@gmail.com", 
+      email:"aaa@gmail.com",
       body: template.text
     },
     {
-      email:"aaa@gmail.com", 
+      email:"aaa@gmail.com",
+      body: template.text
+    },
+    {
+      email:"aaa@gmail.com",
       body: template.text
     },
   ];
@@ -144,5 +148,14 @@ router.get('/templates/:template_id/drafts', function(req, res, next) {
   });
 });
 
-module.exports = router;
+router.get('/callback', function(req, res, next) {
+  const code = req.query.code;
+  console.log(code);
 
+  auth.callScript(code);
+
+  res.redirect(path.join(req.baseUrl,"drafts"));
+});
+
+
+module.exports = router;
