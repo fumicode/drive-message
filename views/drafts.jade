@@ -1,36 +1,39 @@
-
 extends layout
 
 block content
-  h1 スプレッドシート名: #{template.title}
-  input(type="text" value="#{template.ss_url}")
+  .layout.--column-2
+    .layout__left
+      h1 スプレッドシート名: #{template.title}
+      input(type="text" value="#{template.ss_url}")
 
-  h2 カラム
-  ul.table-columns
-    each column in template.header_columns
-      li.table-columns__item
-        .table-columns__name= column.name
-        .table-columns__slug= column.slug
+      h2 カラム
+      ul.table-columns
+        each column in template.ss_header_columns
+          li.table-columns__item
+            .table-columns__name= column.name
+            .table-columns__slug= column.slug
 
-  h2 メールテンプレート
-  form(method="post" action="#{url}")
-    textarea(name="template_text" rows="20" cols="50")= template.text
-    input(type="submit" value="下書きを再生成")
-    
+      h2 メールテンプレート
 
-  h2 作成された下書き
-  table
-    tr
-      th 送信先メールアドレス
-      th 本文
-    tr
-      td email
-      td body
-    each draft in drafts
-      tr
-        td= draft.email
-        td
-          textarea(rows="10" cols="50") #{draft.body}
+      //一個上にいく
+      form(method="post" action="#{path.join(url,'..')}")
+        textarea(name="template_text" rows="20" cols="50")= template.mail_body
+        input(type="submit" value="下書きを再生成")
+            
+    .layout__right
+      h2 作成された下書き
+      table
+        tr
+          th 送信先メールアドレス
+          th 本文
+        tr
+          td email
+          td body
+        each draft in drafts
+          tr
+            td= draft.email
+            td
+              textarea(rows="10" cols="50") #{draft.body}
 
 
 

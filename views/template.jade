@@ -1,18 +1,18 @@
 extends layout
 
 block content
-  h1 スプレッドシート名: #{template.title}
+  h1 スプレッドシート名: #{template.ss_title}
   input(type="text" value="#{template.ss_url}")
 
   h2 カラム
   ul.table-columns
-    each column in template.header_columns
+    each column in template.ss_header_columns
       li.table-columns__item
         .table-columns__name= column.name
         .table-columns__slug= column.slug
 
   h2 メールテンプレート
   form(method="post" action="#{url}")
-    textarea(name="template_text" rows="20" cols="50")= template.text
+    textarea(name="template_text" rows="20" cols="50")= template.mail_body
     input(type="submit" value="下書きを作成")
 
