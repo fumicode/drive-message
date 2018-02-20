@@ -41,3 +41,5 @@ node_modules
 
 
 restart.sh
+
+client_secret.json

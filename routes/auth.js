@@ -1,12 +1,18 @@
+const this_auth = module.exports = {};
+
 var fs = require('fs');
 var readline = require('readline');
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 
 var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+this_auth.SCOPES = SCOPES;
+
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
+
 var TOKEN_PATH = TOKEN_DIR + 'script-nodejs-quickstart.json';
+this_auth.TOKEN_PATH = TOKEN_PATH;
 
 var clientSecret;
 var clientId;
@@ -15,29 +21,38 @@ var auth;
 var oauth2Client;
 var ss_id;
 
+
+
+
+
 // Load client secrets from a local file.
-module.exports.startAuth = function(res, id){
-  ss_id = id;
-  fs.readFile('client_secret.json', function processClientSecrets(err, content) {
-    if (err) {
-      console.log('Error loading client secret file: ' + err);
-      return;
-    }
-    // Authorize a client with the loaded credentials, then call the
-    // Google Apps Script Execution API.
-    authorize(JSON.parse(content), callAppsScript, res);
+this_auth.loadSecret = function(){
+  return new Promise(function(resolve, reject){
+    fs.readFile('client_secret.json', function processClientSecrets(err, content) {
+      if (err) {
+        reject (err) // 'Error loading client secret file: '
+        return;
+      }
+
+      resolve(JSON.parse(content));
+    });
   });
 }
 
-module.exports.callScript = function(code) {
-  oauth2Client.getToken(code, function(err, token) {
-      if (err) {
-        console.log('Error while trying to retrieve access token', err);
-        return;
-      }
-      oauth2Client.credentials = token;
-      storeToken(token);
-      callAppsScript(oauth2Client);
+this_auth.receiveToken = function(code) { //return oauth2Client
+  return new Promise(function(resolve, reject){
+
+    oauth2Client.getToken(code, function(err, token) {
+        if (err) {
+          reject(err); //'Error while trying to retrieve access token',
+          return;
+        }
+
+        oauth2Client.credentials = token;
+        storeToken(token);
+
+        resolve(oauth2Client);
+    });
   });
 }
 
@@ -48,40 +63,21 @@ module.exports.callScript = function(code) {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback, res) {
-  clientSecret = credentials.web.client_secret;
-  clientId = credentials.web.client_id;
-  redirectUrl =  credentials.web.redirect_uris[0];
-  auth = new googleAuth();
-  oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
 
-  // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, function(err, token) {
-    if (err) {
-      getNewToken(oauth2Client, callback, res);
-    } else {
-      oauth2Client.credentials = JSON.parse(token);
-      callback(oauth2Client);
-    }
+this_auth.createAuthClient = function (credentials) {
+  return new Promise(function(resolve, reject){
+
+    clientSecret = credentials.web.client_secret;
+    clientId = credentials.web.client_id;
+    redirectUrl =  credentials.web.redirect_uris[0];
+    auth = new googleAuth();
+    //client obj を生成
+    oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
+
+    resolve(oauth2Client )
   });
 }
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- *
- * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback to call with the authorized
- *     client.
- */
-function getNewToken(oauth2Client, callback, res) {
-  var authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES
-  });
-  // トークン取得画面に遷移
-  res.redirect(302, authUrl);
-}
 
 /**
  * Store token to disk be used in later program executions.
@@ -106,43 +102,36 @@ function storeToken(token) {
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-function callAppsScript(auth) {
-  var scriptId = 'M-AwQNMm4bhdj2TeCmuYY5Y3bqMwcDZRK';
-  var script = google.script('v1');
 
-  // Make the API request. The request object is included here as 'resource'.
-  script.scripts.run({
-    auth: auth,
-    resource: {
-      function: 'getUserDataWithId',
-      parameters: [ss_id],
-      devMode: true
-    },
-    scriptId: scriptId
-  }, function(err, resp) {
-    if (err) {
-      // The API encountered a problem before the script started executing.
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    if (resp.error) {
-      // The API executed, but the script returned an error.
+this_auth.callAppsScript = function(oauth2Client, ss_id) {
+  return new Promise(function(resolve, reject){
+    var scriptId = 'M2XslXm7OQRTbnXTjMghlQHGLRyC2UqH6';
+    var script = google.script('v1');
 
-      // Extract the first (and only) set of error details. The values of this
-      // object are the script's 'errorMessage' and 'errorType', and an array
-      // of stack trace elements.
-      var error = resp.error.details[0];
-      console.log('Script error message: ' + error.errorMessage);
-      console.log('Script error stacktrace:');
-
-      if (error.scriptStackTraceElements) {
-        // There may not be a stacktrace if the script didn't start executing.
-        for (var i = 0; i < error.scriptStackTraceElements.length; i++) {
-          var trace = error.scriptStackTraceElements[i];
-          console.log('\t%s: %s', trace.function, trace.lineNumber);
-        }
+    // Make the API request. The request object is included here as 'resource'.
+    script.scripts.run({
+      auth: oauth2Client,
+      resource: {
+        function: 'getUserDataWithId',
+        parameters: [ss_id],
+        devMode: true
+      },
+      scriptId: scriptId
+    }, function(err, resp) {
+      if (err) {
+        console.log("API 側のエラー");
+        return reject(err) // 'The API returned an error: '
       }
-    } else {
+
+      if (resp.error) {
+        console.log("gas 側のエラー");
+
+        console.log( resp.error);
+
+        return reject(resp.error) ; //GAS側のエラー
+
+      } 
+
       // The structure of the result will depend upon what the Apps Script
       // function returns. Here, the function returns an Apps Script Object
       // with String keys and values, and so the result is treated as a
@@ -150,8 +139,8 @@ function callAppsScript(auth) {
       var folderSet = resp.response.result;
       console.log("Success!!");
       console.log(resp.response.result);
-      return resp.response.result;
-    }
 
+      resolve(resp.response.result);
+    });
   });
 }
